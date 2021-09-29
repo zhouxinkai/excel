@@ -1,0 +1,26 @@
+{
+  "scripts": {
+    "clean": "rm -rf dist",
+    "dev": "yarn clean && tsc -p ./ && node --inspect-brk=8883 dist/index.js",
+    "build": "yarn clean && tsc -p ./ && node dist/index.js"
+  },
+  "dependencies": {
+    "axios": "^0.21.4",
+    "colors": "^1.4.0",
+    "exceljs": "^4.3.0",
+    "fs-extra": "^10.0.0",
+    "moment": "^2.29.1",
+    "puppeteer": "^10.2.0",
+    "querystring": "^0.2.1",
+    "xlsx": "^0.17.1"
+  },
+  "name": "execl",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "zhouxinkai",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^16.9.2",
+    "typescript": "^4.4.2"
+  }
+}

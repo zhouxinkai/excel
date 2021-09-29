@@ -1,0 +1,14 @@
+node_modules
+logs
+log
+build
+dist
+public/freight
+**/.DS_Store
+output
+output_resource
+yarn-error*
+yarn.lock
+esm
+*.xlsx
+config*
