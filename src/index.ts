@@ -14,7 +14,8 @@ import {
   RISE_HALT_TYPE,
   unique,
   isMac,
-  pickValue
+  pickValue,
+  getDay
 } from './utils'
 import { wpsCookies } from './config'
 
@@ -461,31 +462,31 @@ async function main() {
 
 main()
 
-// async function test() {
-//   const workbook = new Excel.Workbook()
-//   const temp = isMac
-//     ? './output'
-//     : '../../WPS Cloud Files/707996352/团队文档/涨停小分队'
-//   fs.ensureDir(temp)
-//   let filePath = path.resolve(temp, `二板晋级率.xlsx`)
-//   filePath = filePath.replace(/ /g, ' ')
-//   await workbook.xlsx.readFile(filePath)
+async function test() {
+  const workbook = new Excel.Workbook()
+  const temp = isMac
+    ? './output'
+    : '../../WPS Cloud Files/707996352/团队文档/涨停小分队'
+  fs.ensureDir(temp)
+  let filePath = path.resolve(temp, `二板晋级率.xlsx`)
+  filePath = filePath.replace(/ /g, ' ')
+  await workbook.xlsx.readFile(filePath)
 
-//   // 按 name 提取工作表
-//   const worksheet = workbook.getWorksheet('Sheet1')
-//   worksheet.lastRow.destroy()
-//   // const row = worksheet.addRow({
-//   //   日期: date,
-//   //   星期几: getDay(),
-//   //   首板个数: '111',
-//   //   '2板个数': '',
-//   //   '2板晋级率': '',
-//   //   连板个数: '',
-//   //   高度板: ''
-//   // })
-//   const row = worksheet.addRow([date, getDay(), 111, 1, 2, 3, 'test'], 'i')
-//   row.commit()
-//   await workbook.xlsx.writeFile(filePath)
-// }
+  // 按 name 提取工作表
+  const worksheet = workbook.getWorksheet('Sheet1')
+  worksheet.lastRow.destroy()
+  // const row = worksheet.addRow({
+  //   日期: date,
+  //   星期几: getDay(),
+  //   首板个数: '111',
+  //   '2板个数': '',
+  //   '2板晋级率': '',
+  //   连板个数: '',
+  //   高度板: ''
+  // })
+  const row = worksheet.addRow([date, getDay(), 111, 1, 2, 3, 'test'], 'i')
+  row.commit()
+  await workbook.xlsx.writeFile(filePath)
+}
 
 // test()
