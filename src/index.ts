@@ -154,7 +154,7 @@ async function addWorksheet(params: {
       horizontalCentered: true
     },
     headerFooter: {
-      oddHeader: `&R&B${riseHaltHint}  /  第&P/&N页[${riseHaltType}]`
+      oddHeader: `&R&B${riseHaltHint}  /  第&P/&N页(${riseHaltType})`
     }
   })
   worksheet.columns = Object.keys(rows[0] || []).map((key) => {
@@ -302,20 +302,25 @@ async function genExcel(questions: QUESTION[]) {
               rows
                 .map((it) => Number(pickValue('涨停天数', it) || 0))
                 .filter(Boolean) || []
-            ).map(
-              (count) =>
-                `${count}板-${
-                  rows.filter((it) =>
-                    Number(pickValue('涨停天数', it) === count)
-                  ).length
-                }`
-            ).join(',  ')
+            )
+              .map(
+                (count) =>
+                  `${count}板-${
+                    rows.filter((it) =>
+                      Number(pickValue('涨停天数', it) === count)
+                    ).length
+                  }`
+              )
+              .join(',  ')
           )
         }
         return list
       },
       [
-        `${date}  :  涨停板-${datasList.reduce((sum, cur) => (sum += cur.rows.length), 0)}`
+        `${date}  :  涨停板-${datasList.reduce(
+          (sum, cur) => (sum += cur.rows.length),
+          0
+        )}`
       ]
     )
     .join('  /  ')
@@ -455,3 +460,32 @@ async function main() {
 }
 
 main()
+
+// async function test() {
+//   const workbook = new Excel.Workbook()
+//   const temp = isMac
+//     ? './output'
+//     : '../../WPS Cloud Files/707996352/团队文档/涨停小分队'
+//   fs.ensureDir(temp)
+//   let filePath = path.resolve(temp, `二板晋级率.xlsx`)
+//   filePath = filePath.replace(/ /g, ' ')
+//   await workbook.xlsx.readFile(filePath)
+
+//   // 按 name 提取工作表
+//   const worksheet = workbook.getWorksheet('Sheet1')
+//   worksheet.lastRow.destroy()
+//   // const row = worksheet.addRow({
+//   //   日期: date,
+//   //   星期几: getDay(),
+//   //   首板个数: '111',
+//   //   '2板个数': '',
+//   //   '2板晋级率': '',
+//   //   连板个数: '',
+//   //   高度板: ''
+//   // })
+//   const row = worksheet.addRow([date, getDay(), 111, 1, 2, 3, 'test'], 'i')
+//   row.commit()
+//   await workbook.xlsx.writeFile(filePath)
+// }
+
+// test()
