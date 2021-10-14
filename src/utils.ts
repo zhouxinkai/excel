@@ -50,3 +50,18 @@ export const isMac = os.platform() === 'darwin'
 export const pickValue = (key: string, data: Record<string, any>) => {
   return data[Object.keys(data).find((it) => it.indexOf(key) !== -1)] || ''
 }
+
+// copy(
+//   JSON.stringify(
+//     document.cookie.split(';').reduce((sum, cur) => {
+//       const [name, value] = cur.split('=')
+//       // sum[key.trim()] = value.trim()
+//       sum.push({
+//         name: name.trim(),
+//         value: value.trim(),
+//         domain: '.kdocs.cn'
+//       })
+//       return sum
+//     }, [])
+//   )
+// )

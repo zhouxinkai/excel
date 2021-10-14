@@ -45,7 +45,8 @@ const getCookie = async () => {
   //   .join(';')
 
   const browser = await puppeteer.launch({
-    headless: true
+    headless: process.env.NODE_ENV !== 'dev',
+    devtools: process.env.NODE_ENV === 'dev'
   })
   const url = URL.format({
     protocol: 'http',
@@ -394,7 +395,8 @@ async function genExcel(questions: QUESTION[]) {
 
 async function uploadFile(filePath: string) {
   const browser = await puppeteer.launch({
-    headless: true
+    headless: process.env.NODE_ENV !== 'dev',
+    devtools: process.env.NODE_ENV === 'dev'
   })
   // https://www.kdocs.cn/team/1375488461?folderid=110432732514
   const url = URL.format({
@@ -419,34 +421,48 @@ async function uploadFile(filePath: string) {
   await page.goto(url)
   await page.waitForTimeout(3000)
 
-  const click = async (selector: string) => {
+  const clickByText = async (selector: string, text: string) => {
     try {
-      const domHandle = await page.waitForSelector(selector)
-      if (domHandle) {
-        await domHandle.click()
-      }
+      await page.$$eval(
+        selector,
+        (elements, text) => {
+          console.log(text)
+          const ret = elements.find((e) => e.textContent === text)
+          console.log(ret)
+          if (ret) {
+            const event = document.createEvent('HTMLEvents')
+            event.initEvent('click', true, true)
+            ret.dispatchEvent(event)
+          } else {
+            console.warn(`没有text是${text}的${selector}`)
+          }
+          return ret
+        },
+        text
+      )
     } catch (e) {
       console.error(e)
     }
   }
+
   /** 上传 */
-  await click(
-    'html > body:nth-child(2) > div#app > div:nth-child(1) > div:nth-child(2) > div#drive-file-container > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > ul:nth-child(1) > li:nth-child(3) > div:nth-child(1) > span:nth-child(1) > span:nth-child(1) > i:nth-child(1)'
+  await page.click('span[title="上传"]')
+  // await clickByText('span', '上传')
+
+  const ul = await page.waitForSelector(
+    'ul.el-dropdown-menu.dropdown-upload[x-placement="bottom-start"]'
   )
   /** 文件 */
-  await click(
-    'html > body:nth-child(2) > ul:nth-child(26) > li:nth-child(1) > div:nth-child(1)'
-  )
-  const input = await page.$(
-    'html > body:nth-child(2) > .el-dropdown-menu.dropdown-upload > li:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div > input'
-  )
-  await input.uploadFile(filePath)
-  /** 覆盖 */
-  await click(
-    'html > body:nth-child(2) > div#app > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > button:nth-child(3) > span:nth-child(1)'
-  )
-  await page.waitForTimeout(3000)
+  const li = await ul.$('li:nth-child(1)')
+  await li.click()
+  // await clickByText('span', '文件')
 
+  const input = await li.$('input')
+  await input.uploadFile(filePath)
+
+  await clickByText('button', '覆盖')
+
+  await page.waitForTimeout(3000)
   browser.close()
 }
 
