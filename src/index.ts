@@ -425,8 +425,7 @@ async function uploadFile(filePath: string) {
     try {
       await page.$$eval(
         selector,
-        (elements, text) => {
-          console.log(text)
+        (elements, text, selector) => {
           const ret = elements.find((e) => e.textContent === text)
           console.log(ret)
           if (ret) {
@@ -438,7 +437,8 @@ async function uploadFile(filePath: string) {
           }
           return ret
         },
-        text
+        text,
+        selector
       )
     } catch (e) {
       console.error(e)
