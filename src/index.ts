@@ -222,7 +222,7 @@ async function addWorksheet(params: {
       orientation: 'landscape',
       blackAndWhite: true,
       showGridLines: true,
-      scale: 70,
+      scale: 75,
       horizontalCentered: true
     },
     headerFooter: {
