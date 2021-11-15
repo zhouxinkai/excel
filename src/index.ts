@@ -4,8 +4,9 @@ import axios from 'axios'
 import qs from 'querystring'
 import fs from 'fs-extra'
 import path from 'path'
-import puppeteer from 'puppeteer'
+import puppeteer, { Page } from 'puppeteer'
 import URL from 'url'
+import os from 'os'
 import 'colors'
 import {
   getDate,
@@ -21,7 +22,76 @@ import { wpsCookies } from './config'
 
 const date = getDate()
 
-const getCookie = async () => {
+const getWpsCookies = async () => {
+  console.log('获取wps用户信息中...')
+  const getPage = async (
+    headless?: boolean
+  ): Promise<{
+    page: Page
+    isNeedLogin: boolean
+  }> => {
+    const userDataDir = path.resolve(os.tmpdir(), './excel/chromeUserDataDir')
+    await fs.ensureDir(userDataDir)
+    const browser = await puppeteer.launch({
+      headless: headless === undefined ? true : headless,
+      devtools: process.env.NODE_ENV === 'dev',
+      userDataDir // 保存用户登录态，不用每次都登录
+    })
+    const page = await browser.newPage()
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(navigator, 'webdriver', {
+        get: () => false
+      })
+    })
+    await page.setUserAgent(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36'
+    )
+
+    const host = 'www.kdocs.cn'
+    const url = URL.format({
+      protocol: 'https',
+      host,
+      pathname: '/team/1375488461',
+      query: {
+        folderid: 110432732514
+      }
+    })
+    await page.goto(url)
+    await page.waitForTimeout(3000)
+    const isNeedLogin = page.url().indexOf(`https://${host}`) !== 0
+    return {
+      page,
+      isNeedLogin
+    }
+  }
+
+  let { page, isNeedLogin } = await getPage(process.env.NODE_ENV !== 'dev')
+  if (isNeedLogin) {
+    await page.browser().close()
+    page = (await getPage(false)).page
+    //页面登录成功后，需要保证扫二维码redirect 跳转到请求的页面
+    await page.click('input[id="loginProtocal"]')
+    await page.click('span[id="wechat"]')
+    console.log('请用微信扫码登录(等待30s)')
+    await page.waitForNavigation()
+    await page.waitForTimeout(3000)
+  }
+
+  // const cookies = await page.cookies()
+  // const ret = cookies.map((it) => `${it.name}=${it.value}`).join(';')
+  // const client = await page.target().createCDPSession()
+  const client = page.client()
+  const { cookies } = await client.send('Network.getAllCookies') // 获取httpOnly的cookie
+
+  // await page.browser().close()
+  console.log('获取wps用户信息成功')
+  return {
+    cookies,
+    page
+  }
+}
+
+const getWencaiCookie = async () => {
   // const url =
   //   'http://www.iwencai.com/unifiedwap/result?w=%E4%BB%8A%E6%97%A5%E6%B6%A8%E5%81%9C%EF%BC%8C%E8%BF%912%E6%97%A5%E6%B6%A8%E5%81%9C%E6%AC%A1%E6%95%B0%E5%A4%A7%E4%BA%8E1%E5%89%94%E9%99%A4ST%E8%82%A1%EF%BC%8C%E4%B8%8A%E5%B8%82%E5%A4%A9%E6%95%B0%E5%A4%A7%E4%BA%8E30&querytype=&issugs&sign=1631953391440'
   // copy(
@@ -78,7 +148,7 @@ const getDatas = async (
   question: QUESTION
 ): Promise<Array<Record<string, any>>> => {
   const riseHaltType = getRiseHaltType(question)
-  const cookies = await getCookie()
+  const cookies = await getWencaiCookie()
   const res = await axios({
     url: 'http://www.iwencai.com/unifiedwap/unified-wap/v2/result/get-robot-data',
     method: 'POST',
@@ -394,32 +464,33 @@ async function genExcel(questions: QUESTION[]) {
 } */
 
 async function uploadFile(filePath: string) {
-  const browser = await puppeteer.launch({
-    headless: process.env.NODE_ENV !== 'dev',
-    devtools: process.env.NODE_ENV === 'dev'
-  })
+  const { page, cookies } = await getWpsCookies()
+  // const browser = await puppeteer.launch({
+  //   headless: process.env.NODE_ENV !== 'dev',
+  //   devtools: process.env.NODE_ENV === 'dev'
+  // })
   // https://www.kdocs.cn/team/1375488461?folderid=110432732514
-  const url = URL.format({
-    protocol: 'https',
-    host: 'www.kdocs.cn',
-    pathname: '/team/1375488461',
-    query: {
-      folderid: 110432732514
-    }
-  })
-  const page = await browser.newPage()
-  await page.evaluateOnNewDocument(() => {
-    Object.defineProperty(navigator, 'webdriver', {
-      get: () => false
-    })
-  })
-  await page.setUserAgent(
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36'
-  )
-  await page.setCookie(...wpsCookies)
+  // const url = URL.format({
+  //   protocol: 'https',
+  //   host: 'www.kdocs.cn',
+  //   pathname: '/team/1375488461',
+  //   query: {
+  //     folderid: 110432732514
+  //   }
+  // })
+  // const page = await browser.newPage()
+  // await page.evaluateOnNewDocument(() => {
+  //   Object.defineProperty(navigator, 'webdriver', {
+  //     get: () => false
+  //   })
+  // })
+  // await page.setUserAgent(
+  //   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36'
+  // )
+  // await page.setCookie(...cookies)
 
-  await page.goto(url)
-  await page.waitForTimeout(3000)
+  // await page.goto(url)
+  // await page.waitForTimeout(3000)
 
   const clickByText = async (selector: string, text: string) => {
     try {
@@ -463,7 +534,7 @@ async function uploadFile(filePath: string) {
   await clickByText('button', '覆盖')
 
   await page.waitForTimeout(3000)
-  browser.close()
+  await page.browser().close()
 }
 
 async function main() {
@@ -472,7 +543,7 @@ async function main() {
     '今日涨停，近2日涨停次数大于1剔除ST股，上市天数大于30'
   ])
   if (isMac) {
-    uploadFile(filePath)
+    await uploadFile(filePath)
   }
 }
 
@@ -490,19 +561,42 @@ async function test() {
 
   // 按 name 提取工作表
   const worksheet = workbook.getWorksheet('Sheet1')
-  worksheet.lastRow.destroy()
-  // const row = worksheet.addRow({
-  //   日期: date,
-  //   星期几: getDay(),
-  //   首板个数: '111',
-  //   '2板个数': '',
-  //   '2板晋级率': '',
-  //   连板个数: '',
-  //   高度板: ''
-  // })
-  const row = worksheet.addRow([date, getDay(), 111, 1, 2, 3, 'test'], 'i')
+  // worksheet.lastRow.destroy()
+  // const row = worksheet.addRow(
+  //   {
+  //     日期: date,
+  //     星期几: getDay(),
+  //     首板个数: '111',
+  //     '2板个数': '',
+  //     '2板晋级率': '',
+  //     连板个数: '',
+  //     高度板: ''
+  //   },
+  //   'i'
+  // )
+  const row = worksheet.addRow([date, getDay(), 111, 1, 2, 3, 'test'])
+  row.height = 18.75
+  row.font = {
+    name: '宋体', // 宋体
+    size: 9,
+    color: {
+      argb: '000000'
+    }
+  }
+  row.eachCell((cell) => {
+    cell.border = {
+      top: { style: 'thin', color: { argb: '4475F6' } },
+      left: { style: 'thin', color: { argb: '4475F6' } },
+      bottom: { style: 'thin', color: { argb: '4475F6' } },
+      right: { style: 'thin', color: { argb: '4475F6' } }
+    }
+  })
   row.commit()
-  await workbook.xlsx.writeFile(filePath)
+  worksheet.eachRow({ includeEmpty: true }, function (row, rowNumber) {
+    console.log('Row ' + rowNumber + ' = ' + JSON.stringify(row.values))
+  })
+  await workbook.xlsx.writeFile('./output/test.xlsx')
+  await uploadFile('./output/test.xlsx')
 }
 
 // test()
