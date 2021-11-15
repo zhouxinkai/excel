@@ -222,7 +222,7 @@ async function addWorksheet(params: {
       orientation: 'landscape',
       blackAndWhite: true,
       showGridLines: true,
-      scale: 80,
+      scale: 70,
       horizontalCentered: true
     },
     headerFooter: {
@@ -272,6 +272,19 @@ async function addWorksheet(params: {
       }
     }
   })
+  if (riseHaltHint === RISE_HALT_TYPE.SERIAL) {
+    rows.sort((pre, next) => {
+      if (pre['涨停天数'] === next['涨停天数']) {
+        return (
+          Number(pre['最终涨停时间'].replace(/[:\s]/g, '')) -
+          Number(next['最终涨停时间'].replace(/[:\s]/g, ''))
+        )
+      } else {
+        next['涨停天数'] - pre['涨停天数']
+        return
+      }
+    })
+  }
   worksheet.addRows(rows)
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) {
