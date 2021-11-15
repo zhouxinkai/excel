@@ -213,7 +213,7 @@ async function addWorksheet(params: {
   riseHaltType: RISE_HALT_TYPE
   riseHaltHint: string
 }) {
-  const { workbook, rows, riseHaltType, riseHaltHint } = params
+  let { workbook, rows, riseHaltType, riseHaltHint } = params
 
   const worksheet = workbook.addWorksheet(riseHaltType, {
     // 打印设置
@@ -272,7 +272,7 @@ async function addWorksheet(params: {
       }
     }
   })
-  if (riseHaltHint === RISE_HALT_TYPE.SERIAL) {
+  if (riseHaltType === RISE_HALT_TYPE.SERIAL) {
     rows.sort((pre, next) => {
       if (pre['涨停天数'] === next['涨停天数']) {
         return (
@@ -280,8 +280,7 @@ async function addWorksheet(params: {
           Number(next['最终涨停时间'].replace(/[:\s]/g, ''))
         )
       } else {
-        next['涨停天数'] - pre['涨停天数']
-        return
+        return next['涨停天数'] - pre['涨停天数']
       }
     })
   }
