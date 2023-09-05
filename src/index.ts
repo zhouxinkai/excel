@@ -163,7 +163,7 @@ const getDatas = async (
           : `连续涨停天数[${date}]`,
       sort_order: riseHaltType === RISE_HALT_TYPE.FIRST ? 'asc' : 'desc',
       question,
-      perpage: 100,
+      perpage: 200,
       page: 1,
       secondary_inten: '',
       // @ts-ignore
@@ -222,7 +222,8 @@ async function addWorksheet(params: {
       orientation: 'landscape',
       blackAndWhite: true,
       showGridLines: true,
-      scale: 75,
+      // scale: 75,
+      scale: 80,
       horizontalCentered: true
     },
     headerFooter: {
@@ -312,10 +313,12 @@ async function addWorksheet(params: {
       })
     } else {
       // row.height = 15.75
-      row.height = 18.75
+      // row.height = 18.75
+      row.height = 23
       row.font = {
         name: '宋体', // 宋体
-        size: 9,
+        // size: 9,
+        size: 10,
         color: {
           argb: '000000'
         }
@@ -551,7 +554,7 @@ async function uploadFile(filePath: string) {
 
 async function main() {
   const filePath = await genExcel([
-    '今日涨停，近2日涨停次数等于1剔除ST股剔除新股',
+    '今日涨停，近2日涨停次数小于2，剔除ST股剔除新股',
     '今日涨停，近2日涨停次数大于1剔除ST股，上市天数大于30'
   ])
   if (isMac) {
