@@ -177,11 +177,11 @@ const getDatas = async (
   }
   const request1 = Object.assign({}, baseRequest, {
     data: Object.assign({}, baseRequestData, {
-      sort_key:
-        riseHaltType === RISE_HALT_TYPE.FIRST
-          ? `最终涨停时间[${date}]`
-          : `连续涨停天数[${date}]`,
-      sort_order: riseHaltType === RISE_HALT_TYPE.FIRST ? 'asc' : 'desc',
+      // sort_key:
+      //   riseHaltType === RISE_HALT_TYPE.FIRST
+      //     ? `最终涨停时间[${date}]`
+      //     : `连续涨停天数[${date}]`,
+      // sort_order: riseHaltType === RISE_HALT_TYPE.FIRST ? 'asc' : 'desc',
       add_info: JSON.stringify({
         // @ts-ignore
         urp: {
@@ -354,6 +354,13 @@ async function addWorksheet(params: {
       } else {
         return next['涨停天数'] - pre['涨停天数']
       }
+    })
+  } else {
+    rows.sort((pre, next) => {
+      return (
+        Number(pre['最终涨停'].replace(/[:\s]/g, '')) -
+        Number(next['最终涨停'].replace(/[:\s]/g, ''))
+      )
     })
   }
   worksheet.addRows(rows)
