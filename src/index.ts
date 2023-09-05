@@ -149,61 +149,130 @@ const getDatas = async (
 ): Promise<Array<Record<string, any>>> => {
   const riseHaltType = getRiseHaltType(question)
   const cookies = await getWencaiCookie()
-  const res = await axios({
-    url: 'http://www.iwencai.com/unifiedwap/unified-wap/v2/result/get-robot-data',
+  const baseRequest = {
+    url: 'http://wwww.iwencai.com/customized/chart/get-robot-data',
     method: 'POST',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Cookie: cookies
-    },
-    data: qs.stringify({
+      'Content-Type': 'application/json',
+      Cookie: cookies,
+      Accept: 'application/json, text/plain',
+      'Accept-Encoding': 'gzip, deflate',
+    }
+  }
+  const baseRequestData = {
+    question,
+    perpage: 200,
+    page: 1,
+    // secondary_inten: '',
+    secondary_intent: "stock",
+    // @ts-ignore
+    // log_info: { input_type: 'typewrite' },
+    source: 'Ths_iwencai_Xuangu',
+    version: '2.0',
+    query_area: '',
+    block_list: '',
+    // rsh: "506618407",
+    // token: "0ac9667e16939290116994216",
+    // add_info: '{"urp":{"scene":1,"company":1,"business":1,"addheaderindexes":"竞价量;竞价金额;换手率;主力资金流向;个股热度;dde散户数量;集中度90;所属概念;技术形态","indexnamelimit":"股票代码;股票简称;最新价;最新涨跌幅;竞价量;竞价金额;换手率;主力资金流向;个股热度;dde散户数量;集中度90;所属概念;技术形态"},"contentType":"json"}'
+  }
+  const request1 = Object.assign({}, baseRequest, {
+    data: Object.assign({}, baseRequestData, {
       sort_key:
         riseHaltType === RISE_HALT_TYPE.FIRST
           ? `最终涨停时间[${date}]`
           : `连续涨停天数[${date}]`,
       sort_order: riseHaltType === RISE_HALT_TYPE.FIRST ? 'asc' : 'desc',
-      question,
-      perpage: 200,
-      page: 1,
-      secondary_inten: '',
-      // @ts-ignore
-      log_info: { input_type: 'typewrite' },
-      source: 'Ths_iwencai_Xuangu',
-      version: '2.0',
-      query_area: '',
-      block_list: '',
-      add_info: {
+      add_info: JSON.stringify({
         // @ts-ignore
-        urp: { scene: 1, company: 1, business: 1 },
+        urp: {
+          scene: 1, company: 1, business: 1,
+        },
         contentType: 'json',
-        searchInfo: true
-      }
+        // searchInfo: true,
+      })
     })
   })
-  const datas: Record<string, any>[] =
-    res.data.data.answer[0].txt[0].content.components[0].data.datas || []
+  const request2 = Object.assign({}, baseRequest, {
+    data: Object.assign({}, baseRequestData, {
+      add_info: JSON.stringify({
+        // @ts-ignore
+        urp: {
+          scene: 1, company: 1, business: 1,
+          addheaderindexes: "竞价涨幅;成交额;竞价量;竞价金额;换手率;主力资金流向;个股热度;dde散户数量;集中度90;所属概念;技术形态",
+          indexnamelimit: "股票代码;股票简称;最新价;最新涨跌幅;竞价涨幅;成交额;竞价量;竞价金额;换手率;主力资金流向;个股热度;dde散户数量;集中度90;所属概念;技术形态"
+        },
+        contentType: 'json',
+        // searchInfo: true,
+      })
+    })
+  })
+  // @ts-ignore
+  const [res1, res2] = await Promise.all([axios(request1), axios(request2)])
+  // const res = await axios({
+  //   data: {
+  //     // sort_key:
+  //     //   riseHaltType === RISE_HALT_TYPE.FIRST
+  //     //     ? `最终涨停时间[${date}]`
+  //     //     : `连续涨停天数[${date}]`,
+  //     // sort_order: riseHaltType === RISE_HALT_TYPE.FIRST ? 'asc' : 'desc',
+  //     question: '今日涨停，剔除ST股剔除新股',
+  //     perpage: 200,
+  //     page: 1,
+  //     // secondary_inten: '',
+  //     secondary_intent: "stock",
+  //     // @ts-ignore
+  //     // log_info: { input_type: 'typewrite' },
+  //     source: 'Ths_iwencai_Xuangu',
+  //     version: '2.0',
+  //     query_area: '',
+  //     block_list: '',
+  //     // rsh: "506618407",
+  //     // token: "0ac9667e16939290116994216",
+  //     // add_info: '{"urp":{"scene":1,"company":1,"business":1,"addheaderindexes":"竞价量;竞价金额;换手率;主力资金流向;个股热度;dde散户数量;集中度90;所属概念;技术形态","indexnamelimit":"股票代码;股票简称;最新价;最新涨跌幅;竞价量;竞价金额;换手率;主力资金流向;个股热度;dde散户数量;集中度90;所属概念;技术形态"},"contentType":"json"}'
+  //     add_info: JSON.stringify({
+  //       // @ts-ignore
+  //       urp: {
+  //         scene: 1, company: 1, business: 1,
+  //         addheaderindexes: "竞价涨幅;成交额;竞价金额;",
+  //         indexnamelimit: "股票代码;股票简称;最新价;最新涨跌幅;成交额;竞价金额;"
+  //       },
+  //       contentType: 'json',
+  //       // searchInfo: true,
+  //     })
+  //   }
+  // })
+  const datas1: Record<string, any>[] =
+    res1.data.data.answer[0].txt[0].content.components[0].data.datas || []
+  const datas2: Record<string, any>[] =
+    res2.data.data.answer[0].txt[0].content.components[0].data.datas || []
 
-  const ret = datas.map((data) => {
+  const ret = datas1.map((data) => {
     return {
       股票代码: pickValue('股票代码', data),
       股票简称: pickValue('股票简称', data),
-      涨停原因类别: pickValue('涨停原因类别', data),
+      涨停原因: pickValue('涨停原因类别', data),
       [`备注[${date}]`]: '',
       ...(riseHaltType === RISE_HALT_TYPE.SERIAL
         ? {
-            涨停天数: Number(pickValue('涨停天数', data))
-          }
+          涨停天数: Number(pickValue('涨停天数', data))
+        }
         : {}),
       '现价(元)': Number(pickValue('最新价', data)),
       流通: Number((pickValue('a股市值(不含限售股)', data) / 1e8).toFixed(2)),
       封单: Number((pickValue('涨停封单额', data) / 1e8).toFixed(2)),
-      平均量能: Number((pickValue('区间成交额', data) / 2e8).toFixed(2)),
+      今日竞价: `${Math.round(Number((pickValue('竞价金额', datas2.find((it) => it.code === data.code))) / 1e4))}w, ${Number((Number(pickValue('竞价涨幅', datas2.find((it) => it.code === data.code)))).toFixed(1))}%`,
+      成交额: Number((Number(pickValue('成交额', datas2.find((it) => it.code === data.code))) / 1e8).toFixed(2)),
+      明日竞额: Math.round(((Number(pickValue('成交额', datas2.find((it) => it.code === data.code))) * 5) / 1e6)) + 'w', // 百分之五
       开板次数: Number(pickValue('开板次数', data)),
       涨停类型: pickValue('涨停类型', data),
-      首次涨停时间: pickValue('首次涨停时间', data),
-      最终涨停时间: pickValue('最终涨停时间', data)
+      首次涨停: pickValue('首次涨停时间', data),
+      最终涨停: pickValue('最终涨停时间', data)
     }
   })
+  // console.log(JSON.stringify({
+  //   datas1,
+  //   datas2
+  // }, null, 2))
   return ret
 }
 
@@ -222,8 +291,7 @@ async function addWorksheet(params: {
       orientation: 'landscape',
       blackAndWhite: true,
       showGridLines: true,
-      // scale: 75,
-      scale: 80,
+      scale: 75,
       horizontalCentered: true
     },
     headerFooter: {
@@ -255,14 +323,17 @@ async function addWorksheet(params: {
       horizontal: 'left'
     }
     if (
-      ['涨停天数', '现价(元)', '流通', '封单', '平均量能', '开板次数'].indexOf(
+      ['涨停天数', '现价(元)', '流通', '封单', '成交额', '开板次数', '今日竞价'].indexOf(
         key
       ) !== -1
     ) {
       alignment.horizontal = 'right'
     }
-    if (['流通', '封单'].indexOf(key) !== -1) {
-      width += 4
+    if (['明日竞额'].indexOf(key) !== -1) {
+      width = 12
+    }
+    if (['流通', '封单', '成交额'].indexOf(key) !== -1) {
+      width += 2
     }
     return {
       header: key,
@@ -277,8 +348,8 @@ async function addWorksheet(params: {
     rows.sort((pre, next) => {
       if (pre['涨停天数'] === next['涨停天数']) {
         return (
-          Number(pre['最终涨停时间'].replace(/[:\s]/g, '')) -
-          Number(next['最终涨停时间'].replace(/[:\s]/g, ''))
+          Number(pre['最终涨停'].replace(/[:\s]/g, '')) -
+          Number(next['最终涨停'].replace(/[:\s]/g, ''))
         )
       } else {
         return next['涨停天数'] - pre['涨停天数']
@@ -392,10 +463,9 @@ async function genExcel(questions: QUESTION[]) {
             )
               .map(
                 (count) =>
-                  `${count}板-${
-                    rows.filter((it) =>
-                      Number(pickValue('涨停天数', it) === count)
-                    ).length
+                  `${count}板-${rows.filter((it) =>
+                    Number(pickValue('涨停天数', it) === count)
+                  ).length
                   }`
               )
               .join(',  ')
@@ -554,8 +624,8 @@ async function uploadFile(filePath: string) {
 
 async function main() {
   const filePath = await genExcel([
-    '今日涨停，近2日涨停次数小于2，剔除ST股剔除新股',
-    '今日涨停，近2日涨停次数大于1剔除ST股，上市天数大于30'
+    '今日涨停，近2日涨停次数等于1，剔除ST股剔除新股',
+    '今日涨停，近2日涨停次数大于1，剔除ST股剔除新股，上市天数大于30'
   ])
   if (isMac) {
     await uploadFile(filePath)

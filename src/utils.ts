@@ -37,12 +37,13 @@ export enum RISE_HALT_TYPE {
 }
 
 export type QUESTION =
-  | '今日涨停，近2日涨停次数小于2，剔除ST股剔除新股'
-  | '今日涨停，近2日涨停次数大于1剔除ST股，上市天数大于30'
+  | '今日涨停，近2日涨停次数等于1，剔除ST股剔除新股'
+  | '今日涨停，近2日涨停次数大于1，剔除ST股剔除新股，上市天数大于30'
 
 export const getRiseHaltType = (question: QUESTION) => {
-  const type = question.match(/涨停次数([\u4e00-\u9fa5]{2})[1|2]/)[1]
-  return type === '小于' ? RISE_HALT_TYPE.FIRST : RISE_HALT_TYPE.SERIAL
+  // const type = question.match(/涨停次数([\u4e00-\u9fa5]{2})[1|2]/)[1]
+  const type = question.match(/涨停次数([\u4e00-\u9fa5]{2})1/)[1]
+  return type === '等于' ? RISE_HALT_TYPE.FIRST : RISE_HALT_TYPE.SERIAL
 }
 
 export const isMac = os.platform() === 'darwin'
