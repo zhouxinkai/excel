@@ -67,3 +67,9 @@ export const pickValue = (key: string, data: Record<string, any>) => {
 //     }, [])
 //   )
 // )
+
+function fun1(num: number) {
+  if (!num) return []
+  const fn = (n: number) => Math.round(n * 100) / 100;
+  return [fn(num * 1.1), fn(num * 1.08), fn(num * 1.05), fn(num * 1.02), fn(num), fn(num * 0.98), fn(num * 0.95), fn(num * 0.92), fn(num * 0.9)]
+}
