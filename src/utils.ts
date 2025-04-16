@@ -38,7 +38,7 @@ export enum RISE_HALT_TYPE {
 
 export type QUESTION =
   | '今日涨停，近2日涨停次数等于1，剔除ST股剔除新股'
-  | '今日涨停，近2日涨停次数大于1，剔除ST股剔除新股，上市天数大于30'
+  | '今日涨停，近2日涨停次数大于1，剔除ST股剔除新股'
 
 export const getRiseHaltType = (question: QUESTION) => {
   // const type = question.match(/涨停次数([\u4e00-\u9fa5]{2})[1|2]/)[1]
@@ -49,6 +49,7 @@ export const getRiseHaltType = (question: QUESTION) => {
 export const isMac = os.platform() === 'darwin'
 
 export const pickValue = (key: string, data: Record<string, any>) => {
+  if (!data) return 0
   return data[Object.keys(data).find((it) => it.indexOf(key) !== -1)] || ''
 }
 

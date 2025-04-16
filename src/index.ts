@@ -150,7 +150,7 @@ const getDatas = async (
   const riseHaltType = getRiseHaltType(question)
   const cookies = await getWencaiCookie()
   const baseRequest = {
-    url: 'http://wwww.iwencai.com/customized/chart/get-robot-data',
+    url: 'http://www.iwencai.com/customized/chart/get-robot-data',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -245,8 +245,8 @@ const getDatas = async (
     res1.data.data.answer[0].txt[0].content.components[0].data.datas || []
   const datas2: Record<string, any>[] =
     res2.data.data.answer[0].txt[0].content.components[0].data.datas || []
-
   const ret = datas1.map((data) => {
+    const temp = pickValue('涨停类型', data)
     return {
       股票代码: pickValue('股票代码', data),
       股票简称: pickValue('股票简称', data),
@@ -264,7 +264,7 @@ const getDatas = async (
       成交额: Number((Number(pickValue('成交额', datas2.find((it) => it.code === data.code))) / 1e8).toFixed(2)),
       明日竞额: Math.round(((Number(pickValue('成交额', datas2.find((it) => it.code === data.code))) * 5) / 1e6)) + 'w', // 百分之五
       开板次数: Number(pickValue('开板次数', data)),
-      涨停类型: pickValue('涨停类型', data),
+      涨停类型: temp.length <= 4 ? temp : temp.replace(/[涨停|\|\|]/g, ''),
       首次涨停: pickValue('首次涨停时间', data),
       最终涨停: pickValue('最终涨停时间', data)
     }
@@ -504,7 +504,7 @@ async function genExcel(questions: QUESTION[]) {
 
   const temp = isMac
     ? './output'
-    : '../../WPS Cloud Files/707996352/团队文档/涨停小分队'
+    : '../../同花顺数据备份/涨停小分队'
   fs.ensureDir(temp)
   let filePath = path.resolve(temp, `${date}.xlsx`)
   filePath = filePath.replace(/ /g, ' ')
@@ -632,7 +632,7 @@ async function uploadFile(filePath: string) {
 async function main() {
   const filePath = await genExcel([
     '今日涨停，近2日涨停次数等于1，剔除ST股剔除新股',
-    '今日涨停，近2日涨停次数大于1，剔除ST股剔除新股，上市天数大于30'
+    '今日涨停，近2日涨停次数大于1，剔除ST股剔除新股'
   ])
   if (isMac) {
     await uploadFile(filePath)
@@ -645,7 +645,7 @@ async function test() {
   const workbook = new Excel.Workbook()
   const temp = isMac
     ? './output'
-    : '../../WPS Cloud Files/707996352/团队文档/涨停小分队'
+    : '../../同花顺数据备份/涨停小分队'
   fs.ensureDir(temp)
   let filePath = path.resolve(temp, `二板晋级率.xlsx`)
   filePath = filePath.replace(/ /g, ' ')
