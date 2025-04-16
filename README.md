@@ -7,5 +7,8 @@ features
 - 微信扫码登录wps
 
 ```bash
+yarn
 yarn build
 ```
+![alt text](demo.png)
+后续想要什么数据可以自己加
