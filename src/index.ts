@@ -19,6 +19,7 @@ import {
   getDay
 } from './utils'
 import { wpsCookies } from './config'
+import { setTimeout } from 'timers/promises'
 
 const date = getDate()
 
@@ -57,7 +58,8 @@ const getWpsCookies = async () => {
       }
     })
     await page.goto(url)
-    await page.waitForTimeout(3000)
+    // await page.waitForTimeout(3000)
+    await setTimeout(3000)
     const isNeedLogin = page.url().indexOf(`https://${host}`) !== 0
     return {
       page,
@@ -74,13 +76,15 @@ const getWpsCookies = async () => {
     await page.click('span[id="wechat"]')
     console.log('请用微信扫码登录(等待30s)')
     await page.waitForNavigation()
-    await page.waitForTimeout(3000)
+    // await page.waitForTimeout(3000)
+    await setTimeout(3000)
   }
 
   // const cookies = await page.cookies()
   // const ret = cookies.map((it) => `${it.name}=${it.value}`).join(';')
   // const client = await page.target().createCDPSession()
-  const client = page.client()
+  const client = await page.createCDPSession()
+  // const client = page.client()
   const { cookies } = await client.send('Network.getAllCookies') // 获取httpOnly的cookie
 
   // await page.browser().close()
@@ -138,7 +142,7 @@ const getWencaiCookie = async () => {
   )
 
   await page.goto(url)
-  const cookies = await page.cookies()
+  const cookies = await browser.cookies()
   const ret = cookies.map((it) => `${it.name}=${it.value}`).join(';')
   browser.close()
   return ret
@@ -592,8 +596,12 @@ async function uploadFile(filePath: string) {
           const ret = elements.find((e) => e.textContent === text)
           console.log(ret)
           if (ret) {
-            const event = document.createEvent('HTMLEvents')
-            event.initEvent('click', true, true)
+            // const event = document.createEvent('HTMLEvents')
+            // event.initEvent('click', true, true)
+            const event = new Event('click', {
+              bubbles: true,
+              cancelable: false
+            });
             ret.dispatchEvent(event)
           } else {
             console.warn(`没有text是${text}的${selector}`)
@@ -625,7 +633,8 @@ async function uploadFile(filePath: string) {
 
   await clickByText('button', '覆盖')
 
-  await page.waitForTimeout(3000)
+  // await page.waitForTimeout(3000)
+  await setTimeout(3000)
   await page.browser().close()
 }
 
